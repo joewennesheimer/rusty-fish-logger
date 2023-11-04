@@ -1,12 +1,17 @@
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use surrealdb::engine::local::Mem;
+use surrealdb::Surreal;
+
 use std::{
     fmt::{self, Display},
-    process,
     io::stdin,
+    process,
 };
 
 use chrono::{DateTime, Utc};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Fish {
     species: Species,
     weight: f32,
@@ -23,7 +28,7 @@ impl Display for Fish {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 enum Species {
     LargemouthBass,
     SmallmouthBass,
@@ -49,11 +54,14 @@ impl Display for Species {
     }
 }
 
-fn main() {
-    let mut fish_list: Vec<Fish> = Vec::new();
+#[tokio::main]
+async fn main() -> Result<()> {
+    let database = Surreal::new::<Mem>(()).await?;
 
-    println!("Welcome to the Rusty Fish Logger!");
-    println!("Type 'quit' at any time to exit the program.\n\n");
+    database.use_ns("namespace").use_db("database").await?;
+
+    println!("\nWelcome to the Rusty Fish Logger!");
+    println!("Type 'quit' at any time to exit the program.\n");
 
     loop {
         // get species
@@ -78,18 +86,22 @@ fn main() {
         // get notes
         let fish_notes = get_notes();
 
-        let fish = Fish {
-            species,
-            weight,
-            length,
-            time_caught: now,
-            location: fish_location.trim().to_string(),
-            bait: fish_bait.trim().to_string(),
-            notes: fish_notes.trim().to_string(),
-        };
+        let _created: Vec<Fish> = database
+            .create("fish")
+            .content(Fish {
+                species,
+                weight,
+                length,
+                time_caught: now,
+                location: fish_location.trim().to_string(),
+                bait: fish_bait.trim().to_string(),
+                notes: fish_notes.trim().to_string(),
+            })
+            .await?;
 
-        println!("You caught a {:?}\n", fish);
-        fish_list.push(fish);
+        let fish: Vec<Fish> = database.select("fish").await?;
+
+        println!("You caught {} fish!\n", fish.len());
     }
 }
 
@@ -135,9 +147,7 @@ fn get_species() -> Species {
 fn get_weight() -> f32 {
     println!("What did the fish weigh in pounds?");
     let fish_weight = &mut String::new();
-    stdin()
-        .read_line(fish_weight)
-        .expect("Failed to read line");
+    stdin().read_line(fish_weight).expect("Failed to read line");
     if fish_weight.trim() == "quit" {
         process::exit(0);
     }
@@ -147,9 +157,7 @@ fn get_weight() -> f32 {
 fn get_length() -> f32 {
     println!("What was the length of the fish in inches?");
     let fish_length = &mut String::new();
-    stdin()
-        .read_line(fish_length)
-        .expect("Failed to read line");
+    stdin().read_line(fish_length).expect("Failed to read line");
     if fish_length.trim() == "quit" {
         process::exit(0);
     }
@@ -171,9 +179,7 @@ fn get_location() -> String {
 fn get_bait() -> String {
     println!("What bait did you use?");
     let fish_bait = &mut String::new();
-    stdin()
-        .read_line(fish_bait)
-        .expect("Failed to read line");
+    stdin().read_line(fish_bait).expect("Failed to read line");
     if fish_bait.trim() == "quit" {
         process::exit(0);
     }
