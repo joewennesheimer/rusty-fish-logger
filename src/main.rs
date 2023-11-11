@@ -1,8 +1,10 @@
 use anyhow::Result;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use surrealdb::engine::local::Mem;
+use surrealdb::engine::local::{Db, File};
 use surrealdb::Surreal;
 
+use std::env;
 use std::{
     fmt::{self, Display},
     io::stdin,
@@ -54,11 +56,15 @@ impl Display for Species {
     }
 }
 
+static DATABASE: Lazy<Surreal<Db>> = Lazy::new(Surreal::init);
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    let database = Surreal::new::<Mem>(()).await?;
 
-    database.use_ns("namespace").use_db("database").await?;
+    let databasepath = format!("{}/fish.db", env::current_dir()?.display().to_string());
+    DATABASE.connect::<File>(databasepath).await?;
+
+    DATABASE.use_ns("namespace").use_db("database").await?;
 
     println!("\nWelcome to the Rusty Fish Logger!");
     println!("Type 'quit' at any time to exit the program.\n");
@@ -86,7 +92,7 @@ async fn main() -> Result<()> {
         // get notes
         let fish_notes = get_notes();
 
-        let _created: Vec<Fish> = database
+        let _created: Vec<Fish> = DATABASE
             .create("fish")
             .content(Fish {
                 species,
@@ -99,7 +105,7 @@ async fn main() -> Result<()> {
             })
             .await?;
 
-        let fish: Vec<Fish> = database.select("fish").await?;
+        let fish: Vec<Fish> = DATABASE.select("fish").await?;
 
         println!("You caught {} fish!\n", fish.len());
     }
