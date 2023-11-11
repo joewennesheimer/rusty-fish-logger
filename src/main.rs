@@ -92,6 +92,7 @@ async fn main() -> Result<()> {
         // get notes
         let fish_notes = get_notes();
 
+        // create fish
         let _created: Vec<Fish> = DATABASE
             .create("fish")
             .content(Fish {
@@ -105,6 +106,7 @@ async fn main() -> Result<()> {
             })
             .await?;
 
+        // get the number of fish stored in the database
         let fish: Vec<Fish> = DATABASE.select("fish").await?;
 
         println!("You caught {} fish!\n", fish.len());
@@ -157,7 +159,10 @@ fn get_weight() -> f32 {
     if fish_weight.trim() == "quit" {
         process::exit(0);
     }
-    fish_weight.trim().parse::<f32>().unwrap()
+    match fish_weight.trim().parse::<f32>() {
+        Ok(_) => { return fish_weight.trim().parse::<f32>().unwrap()},
+        Err(_) => {println!("That's not a valid weight!"); return get_weight()},
+    }
 }
 
 fn get_length() -> f32 {
@@ -167,7 +172,10 @@ fn get_length() -> f32 {
     if fish_length.trim() == "quit" {
         process::exit(0);
     }
-    fish_length.trim().parse::<f32>().unwrap()
+    match fish_length.trim().parse::<f32>() {
+        Ok(_) => { fish_length.trim().parse::<f32>().unwrap()},
+        Err(_) => {println!("That's not a valid length!"); return get_length()},
+    }
 }
 
 fn get_location() -> String {
