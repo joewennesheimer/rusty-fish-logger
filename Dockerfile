@@ -25,6 +25,9 @@ FROM debian
 
 WORKDIR /usr/local/bin
 
+RUN mkdir -p /data/
+RUN chown 65532:65532 /data/
+
 COPY --from=builder /app/target/release/fish-logger .
 
 CMD ["./fish-logger"]

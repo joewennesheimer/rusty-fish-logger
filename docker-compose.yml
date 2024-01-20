@@ -29,9 +29,13 @@ services:
       - $DB_USER
       - --pass
       - $DB_PASSWORD
+      - file:/data/database.db
     image: surrealdb/surrealdb:latest
+    user: root
     ports:
       - 8000:8000
+    volumes:
+      - ./data:/data
       
 networks:
   fish-logger-network:
