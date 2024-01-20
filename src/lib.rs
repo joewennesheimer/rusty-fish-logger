@@ -4,9 +4,10 @@ use std::{io::stdin, process};
 
 use chrono::Utc;
 use models::model::{Fish, Species};
+use once_cell::sync::Lazy;
 use surrealdb::{Surreal, engine::remote::ws::Client};
 
-pub async fn log_fish(db: Surreal<Client>)-> Result<(), Box<dyn std::error::Error>>{
+pub async fn log_fish(db: &Lazy<Surreal<Client>>)-> Result<(), Box<dyn std::error::Error>>{
 
     loop {
         // get species

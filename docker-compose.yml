@@ -1,9 +1,11 @@
 version: '3.9'
 
 services:
-  rustapp:
-    container_name: rustapp
-    image: joewennesheimer/rustapp:latest
+  fish-logger:
+    container_name: fish-logger
+    image: joewennesheimer/fish-logger:latest
+    networks:
+      - fish-logger-network
     build:
       context: .
       dockerfile: Dockerfile
@@ -15,6 +17,8 @@ services:
   surrealdb:
     env_file:
       - .env
+    networks:
+      - fish-logger-network
     entrypoint: 
       - /surreal 
       - start 
@@ -25,3 +29,7 @@ services:
     image: surrealdb/surrealdb:latest
     ports:
       - 8000:8000
+      
+networks:
+  fish-logger-network:
+    driver: bridge
