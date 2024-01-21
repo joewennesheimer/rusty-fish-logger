@@ -11,5 +11,12 @@ chrono = "0.4.31"
 once_cell = "1.18.0"
 serde = { version = "1.0.190", features = ["derive"] }
 surrealdb = { version = "1.0.0", features = ["default"] }
-tokio = { version = "1.33.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.33.0", features = ["full"] }
 axum = "0.7.4"
+dotenv = { version = "0.15.0" }
+env_logger = { version = "0.11.0" }
+log = { version = "0.4.20" }
+serde_json = "1.0.111"
+tower = { version = "0.4.13", features = ["full"] }
+tower-http = { version = "0.5.1", features = ["cors"] }
+hyper = { version = "1.1.0", features = ["full"] }
